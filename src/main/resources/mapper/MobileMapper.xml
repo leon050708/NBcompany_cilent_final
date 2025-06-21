@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.example.nbcompany.dao.MobileMapper">
+
+    <!-- 结果映射 -->
+    <resultMap id="MobileBizCollaborationResponseMap" type="org.example.nbcompany.dto.response.MobileBizCollaborationResponse">
+        <id column="id" property="id"/>
+        <result column="category" property="category"/>
+        <result column="title" property="title"/>
+        <result column="summary" property="summary"/>
+        <result column="external_link" property="externalLink"/>
+    </resultMap>
+
+    <!-- 获取合作模块列表 -->
+    <select id="getCollaborations" resultMap="MobileBizCollaborationResponseMap">
+        SELECT 
+            id,
+            category,
+            title,
+            summary,
+            external_link
+        FROM biz_collaboration
+        <where>
+            status = 1
+            <if test="category != null">
+                AND category = #{category}
+            </if>
+        </where>
+        ORDER BY created_at DESC
+        LIMIT #{offset}, #{size}
+    </select>
+
+    <!-- 获取合作模块总数 -->
+    <select id="getTotalCount" resultType="int">
+        SELECT COUNT(*)
+        FROM biz_collaboration
+        <where>
+            status = 1
+            <if test="category != null">
+                AND category = #{category}
+            </if>
+        </where>
+    </select>
+
+    <!-- 根据会议ID获取会议详情 -->
+    <select id="findByMeetingId" resultType="org.example.nbcompany.entity.BizMeeting">
+        SELECT 
+            id,
+            meeting_name,
+            start_time,
+            end_time,
+            cover_image_url,
+            content,
+            location,
+            organizer,
+            agenda,
+            speakers,
+            creator_id,
+            creator_name,
+            company_id,
+            status,
+            created_at,
+            updated_at
+        FROM biz_meeting
+        WHERE id = #{meetingId}
+    </select>
+
+    <!-- 插入会议注册回执 -->
+    <insert id="insert" parameterType="org.example.nbcompany.entity.BizMeetingRegistration" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO biz_meeting_registration (
+            meeting_id,
+            user_id,
+            company,
+            name,
+            gender,
+            phone_number,
+            email,
+            arrival_method,
+            arrival_train_no,
+            arrival_time,
+            registered_at
+        ) VALUES (
+            #{meetingId},
+            #{userId},
+            #{company},
+            #{name},
+            #{gender},
+            #{phoneNumber},
+            #{email},
+            #{arrivalMethod},
+            #{arrivalTrainNo},
+            #{arrivalTime},
+            #{registeredAt}
+        )
+    </insert>
+
+    <!-- 根据会议ID和用户ID查询回执 -->
+    <select id="findByMeetingIdAndUserId" resultType="org.example.nbcompany.entity.BizMeetingRegistration">
+        SELECT 
+            id,
+            meeting_id,
+            user_id,
+            company,
+            name,
+            gender,
+            phone_number,
+            email,
+            arrival_method,
+            arrival_train_no,
+            arrival_time,
+            registered_at
+        FROM biz_meeting_registration
+        WHERE meeting_id = #{meetingId} AND user_id = #{userId}
+    </select>
+
+    <!-- 根据合作模块ID获取详情 -->
+    <select id="findByCollaborationId" resultMap="MobileBizCollaborationResponseMap">
+        SELECT 
+            id,
+            category,
+            title,
+            summary,
+            external_link
+        FROM biz_collaboration
+        WHERE id = #{collaborationId} AND status = 1
+    </select>
+
+</mapper> 
