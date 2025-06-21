@@ -33,8 +33,6 @@ public class AuthController {
     @PostMapping("/login")
     public ApiResponse<LoginResponse> login(@RequestBody LoginRequest request) {
         LoginResponse response = userService.login(request);
-        String token = JwtUtil.generateToken(response.getUserInfo().getId(), response.getUserInfo().getUsername());
-        response.setToken(token);
         return ApiResponse.success("登录成功", response);
     }
 } 

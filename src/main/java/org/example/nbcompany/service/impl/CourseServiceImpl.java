@@ -47,7 +47,8 @@ public class CourseServiceImpl implements CourseService {
         SysUser currentUser = getCurrentUserOrThrow();
         
         // 验证用户是否有权限创建课程
-        if (currentUser.getCompanyId() == null) {
+        // 平台超级管理员可以创建课程，企业用户需要属于某个企业
+        if (currentUser.getUserType() != 2 && currentUser.getCompanyId() == null) {
             throw new IllegalArgumentException("用户不属于任何企业，无法创建课程");
         }
         
@@ -57,7 +58,7 @@ public class CourseServiceImpl implements CourseService {
         // 使用Token中的用户信息，而不是前端传递的信息
         bizCourse.setAuthorId(currentUser.getId());
         bizCourse.setAuthorName(currentUser.getNickname());
-        bizCourse.setCompanyId(currentUser.getCompanyId());
+        bizCourse.setCompanyId(currentUser.getCompanyId()); // 平台管理员为null
         
         // 设置默认值
         bizCourse.setViewCount(0);
@@ -195,21 +196,19 @@ public class CourseServiceImpl implements CourseService {
         if (!courseAuditDTO.isValidStatus()) {
             throw new IllegalArgumentException("无效的审核状态");
         }
-        
-        // 权限验证：只有平台管理员可以审核课程
-        if (!UserContext.isPlatformAdmin()) {
-            throw new IllegalArgumentException("无权限审核课程");
-        }
-        
         BizCourse existing = bizCourseDao.findById(courseAuditDTO.getId());
         if (existing == null) {
             throw new IllegalArgumentException("课程不存在");
         }
-        
+        // 权限验证：平台超级管理员可审核所有课程，企业管理员可审核本企业课程
+        boolean isPlatformAdmin = UserContext.isPlatformAdmin();
+        boolean isCompanyAdmin = UserContext.isCompanyAdmin(existing.getCompanyId());
+        if (!isPlatformAdmin && !isCompanyAdmin) {
+            throw new IllegalArgumentException("无权限审核课程");
+        }
         existing.setStatus(courseAuditDTO.getStatus());
         existing.setUpdatedAt(LocalDateTime.now());
         bizCourseDao.update(existing);
-        
         return convertToDetailDTO(existing);
     }
 
@@ -444,5 +443,26 @@ public class CourseServiceImpl implements CourseService {
         
         // 导出到Excel
         return excelExportService.exportCourseListToExcel(dtoList);
+    }
+
+    @Override
+    @Transactional
+    public boolean incrementViewCount(Long id) {
+        BizCourse course = bizCourseDao.findById(id);
+        if (course == null) return false;
+        // 只统计已发布课程
+        if (course.getStatus() != 1) return false;
+        Long currentUserId = UserContext.getCurrentUserId();
+        SysUser currentUser = sysUserMapper.selectById(currentUserId);
+        if (currentUser == null) return false;
+        // 作者本人不计入
+        if (currentUserId.equals(course.getAuthorId())) return false;
+        // 企业管理员或平台管理员不计入
+        boolean isAdmin = (currentUser.getCompanyRole() != null && currentUser.getCompanyRole() == 2)
+                          || (currentUser.getUserType() != null && currentUser.getUserType() == 2);
+        if (isAdmin) return false;
+        // 只有普通用户访问时才+1
+        bizCourseDao.incrementViewCount(id);
+        return true;
     }
 }

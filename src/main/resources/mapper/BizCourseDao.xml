@@ -57,6 +57,9 @@
         WHERE id = #{id}
     </update>
 
+    <update id="incrementViewCount">
+        UPDATE biz_course SET view_count = view_count + 1 WHERE id = #{id}
+    </update>
 
     <delete id="deleteById">
         DELETE FROM biz_course WHERE id = #{id}

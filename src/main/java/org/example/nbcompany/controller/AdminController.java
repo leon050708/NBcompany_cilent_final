@@ -1,14 +1,15 @@
 package org.example.nbcompany.controller;
 
 import org.example.nbcompany.dto.request.CompanyStatusRequest;
-import org.example.nbcompany.dto.request.UpdateMeetingStatusRequest;
 import org.example.nbcompany.dto.response.*;
 import org.example.nbcompany.entity.SysUser;
 import org.example.nbcompany.service.CompanyService;
-import org.example.nbcompany.service.MeetingService;
 import org.example.nbcompany.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import org.example.nbcompany.dto.AnalyticsDto.AnalyticsQueryDto;
+import org.example.nbcompany.dto.AnalyticsDto.AnalyticsResponseDto;
+import org.example.nbcompany.service.AnalyticsService;
 
 @RestController
 @RequestMapping("/api/v1/admin")
@@ -19,11 +20,7 @@ public class AdminController {
 
     @Autowired
     private CompanyService companyService;
-
-    @Autowired
-    private MeetingService meetingService;
-
-
+    private AnalyticsService analyticsService;
     @GetMapping("/users")
     public ApiResponse<PageResponse<SysUser>> listUsers(
             @RequestParam(required = false) Long companyId,
@@ -57,14 +54,10 @@ public class AdminController {
         companyService.updateCompanyStatus(companyId, request.getStatus());
         return ApiResponse.success("企业状态修改成功", null);
     }
-
-    @PutMapping("/meetings/{meetingId}/status")
-    public ApiResponse<Void> updateMeetingStatus(
-            @PathVariable Long meetingId,
-            @RequestBody UpdateMeetingStatusRequest request,
-            @RequestAttribute Long userId
-    ) {
-        meetingService.updateMeetingStatus(meetingId, request.getStatus(), userId);
-        return ApiResponse.success("会议审核成功", null);
+    @GetMapping("/analytics/user-activity")
+    public ApiResponse<AnalyticsResponseDto> getUserActivityStatistics(AnalyticsQueryDto queryDto) {
+        // @PreAuthorize("hasRole('ROLE_SUPER_ADMIN')") 已经保护了整个Controller
+        // Controller只负责接收参数和调用Service
+        return ApiResponse.success(analyticsService.getStatistics(queryDto));
     }
 } 

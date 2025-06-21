@@ -12,10 +12,11 @@ public class JwtUtil {
     private static final Key KEY = Keys.hmacShaKeyFor(SECRET.getBytes());
     private static final long EXPIRATION = 7 * 24 * 60 * 60 * 1000L; // 7天
 
-    public static String generateToken(Long userId, String username) {
+    public static String generateToken(Long userId, String username, Integer userType) {
         return Jwts.builder()
                 .setSubject(String.valueOf(userId))
                 .claim("username", username)
+                .claim("userType", userType)
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION))
                 .signWith(KEY)
@@ -28,5 +29,9 @@ public class JwtUtil {
 
     public static Long getUserId(String token) {
         return Long.valueOf(parseToken(token).getBody().getSubject());
+    }
+    
+    public static Integer getUserType(String token) {
+        return parseToken(token).getBody().get("userType", Integer.class);
     }
 } 

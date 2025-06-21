@@ -4,7 +4,9 @@ import org.example.nbcompany.dao.SysUserMapper;
 import org.example.nbcompany.dto.request.*;
 import org.example.nbcompany.dto.response.*;
 import org.example.nbcompany.entity.SysUser;
+import org.example.nbcompany.exception.UserExistsException;
 import org.example.nbcompany.service.UserService;
+import org.example.nbcompany.util.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -24,6 +26,12 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public void register(UserRegisterRequest request) {
+        // 检查用户名是否已存在
+        SysUser existingUser = userMapper.selectByUsername(request.getUsername());
+        if (existingUser != null) {
+            throw new UserExistsException(request.getUsername());
+        }
+        
         SysUser user = new SysUser();
         user.setUsername(request.getUsername());
         user.setPassword(passwordEncoder.encode(request.getPassword()));
@@ -51,10 +59,11 @@ public class UserServiceImpl implements UserService {
             throw new RuntimeException("账号已被禁用");
         }
 
-        // TODO: 生成JWT token
+        // 生成JWT token，包含用户类型信息
+        String token = JwtUtil.generateToken(user.getId(), user.getUsername(), user.getUserType());
 
         LoginResponse response = new LoginResponse();
-        response.setToken("TODO: JWT token");
+        response.setToken(token);
         
         LoginResponse.UserInfo userInfo = new LoginResponse.UserInfo();
         userInfo.setId(user.getId());
@@ -147,6 +156,12 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public void createUser(SysUser user) {
+        // 检查用户名是否已存在
+        SysUser existingUser = userMapper.selectByUsername(user.getUsername());
+        if (existingUser != null) {
+            throw new UserExistsException(user.getUsername());
+        }
+        
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         user.setCreatedAt(LocalDateTime.now());
         user.setUpdatedAt(LocalDateTime.now());
@@ -182,6 +197,12 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public void createCompanyMember(Long companyId, SysUser user) {
+        // 检查用户名是否已存在
+        SysUser existingUser = userMapper.selectByUsername(user.getUsername());
+        if (existingUser != null) {
+            throw new UserExistsException(user.getUsername());
+        }
+        
         user.setCompanyId(companyId);
         user.setUserType(1); // 企业用户
         user.setPassword(passwordEncoder.encode(user.getPassword()));

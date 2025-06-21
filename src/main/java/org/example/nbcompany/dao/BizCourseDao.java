@@ -18,4 +18,6 @@ public interface BizCourseDao {
     int update(BizCourse bizCourse);
 
     int deleteById(@Param("id") Long id);
+
+    int incrementViewCount(@Param("id") Long id);
 }

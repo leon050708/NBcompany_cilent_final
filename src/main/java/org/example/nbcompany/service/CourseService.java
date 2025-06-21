@@ -57,4 +57,11 @@ public interface CourseService {
      * @return Excel文件的字节数组
      */
     byte[] exportCourseListToExcel(CourseQueryDTO queryDTO);
+
+    /**
+     * 增加课程观看量
+     * @param id 课程ID
+     * @return 是否真的加了1
+     */
+    boolean incrementViewCount(Long id);
 }

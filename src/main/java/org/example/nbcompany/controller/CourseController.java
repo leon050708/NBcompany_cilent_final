@@ -33,11 +33,6 @@ public class CourseController {
     @PostMapping
     @RequireLogin
     public ApiResponse<CourseDetailDTO> createCourse(@RequestBody CourseCreateDTO courseCreateDTO) {
-        // 权限验证：需要用户登录
-        if (UserContext.getCurrentUserId() == null) {
-            return ApiResponse.error(401, "用户未登录");
-        }
-        
         try {
             CourseDetailDTO result = courseService.createCourse(courseCreateDTO);
             return ApiResponse.success("课程创建成功", result);
@@ -56,11 +51,6 @@ public class CourseController {
     @GetMapping("/{id}")
     @RequireLogin
     public ApiResponse<CourseDetailDTO> getCourseById(@PathVariable Long id) {
-        // 权限验证：需要用户登录
-        if (UserContext.getCurrentUserId() == null) {
-            return ApiResponse.error(401, "用户未登录");
-        }
-        
         try {
             CourseDetailDTO course = courseService.getCourseById(id);
             if (course == null) {
@@ -82,11 +72,6 @@ public class CourseController {
     @GetMapping
     @RequireLogin
     public ApiResponse<PageResponse<CourseListItemDTO>> getCourseList(CourseQueryDTO queryDTO) {
-        // 权限验证：需要用户登录
-        if (UserContext.getCurrentUserId() == null) {
-            return ApiResponse.error(401, "用户未登录");
-        }
-        
         try {
             PageInfo<CourseListItemDTO> pageInfo = courseService.getCourseList(queryDTO);
             PageResponse<CourseListItemDTO> response = new PageResponse<>();
@@ -111,11 +96,6 @@ public class CourseController {
     @PutMapping("/{id}")
     @RequireLogin
     public ApiResponse<CourseDetailDTO> updateCourse(@PathVariable Long id, @RequestBody CourseUpdateDTO courseUpdateDTO) {
-        // 权限验证：需要用户登录
-        if (UserContext.getCurrentUserId() == null) {
-            return ApiResponse.error(401, "用户未登录");
-        }
-        
         try {
             CourseDetailDTO result = courseService.updateCourse(id, courseUpdateDTO);
             if (result == null) {
@@ -137,11 +117,6 @@ public class CourseController {
     @DeleteMapping("/{id}")
     @RequireLogin
     public ApiResponse<Void> deleteCourse(@PathVariable Long id) {
-        // 权限验证：需要用户登录
-        if (UserContext.getCurrentUserId() == null) {
-            return ApiResponse.error(401, "用户未登录");
-        }
-        
         try {
             courseService.deleteCourse(id);
             return ApiResponse.success("课程删除成功", null);
@@ -160,11 +135,6 @@ public class CourseController {
     @PostMapping("/audit")
     @RequireLogin
     public ApiResponse<CourseDetailDTO> auditCourse(@RequestBody CourseAuditDTO courseAuditDTO) {
-        // 权限验证：需要用户登录
-        if (UserContext.getCurrentUserId() == null) {
-            return ApiResponse.error(401, "用户未登录");
-        }
-        
         try {
             CourseDetailDTO result = courseService.auditCourse(courseAuditDTO);
             return ApiResponse.success("课程审核成功", result);
@@ -183,11 +153,6 @@ public class CourseController {
     @GetMapping("/export")
     @RequireLogin
     public ResponseEntity<byte[]> exportCourseListToExcel(CourseQueryDTO queryDTO) {
-        // 权限验证：需要用户登录
-        if (UserContext.getCurrentUserId() == null) {
-            return ResponseEntity.status(401).build();
-        }
-
         try {
             byte[] excelData = courseService.exportCourseListToExcel(queryDTO);
 
@@ -199,11 +164,26 @@ public class CourseController {
             return ResponseEntity.ok()
                     .headers(headers)
                     .body(excelData);
-
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(403).build();
         } catch (Exception e) {
             return ResponseEntity.status(500).build();
+        }
+    }
+    
+    /**
+     * 增加课程观看量
+     */
+    @PostMapping("/{id}/view")
+    @RequireLogin
+    public ApiResponse<Object> incrementViewCount(@PathVariable Long id) {
+        try {
+            boolean increased = courseService.incrementViewCount(id);
+            if (increased) {
+                return ApiResponse.success("观看量+1", java.util.Map.of("viewCountIncreased", true));
+            } else {
+                return ApiResponse.success("未增加观看量（非普通用户或未发布课程）", java.util.Map.of("viewCountIncreased", false));
+            }
+        } catch (Exception e) {
+            return ApiResponse.error(500, "增加观看量失败: " + e.getMessage());
         }
     }
 }
