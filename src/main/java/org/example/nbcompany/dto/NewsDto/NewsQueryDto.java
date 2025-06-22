@@ -8,4 +8,5 @@ public class NewsQueryDto {
     private String authorName;
     private Long companyId;
     private Integer status;
+    private String keyword;
 }

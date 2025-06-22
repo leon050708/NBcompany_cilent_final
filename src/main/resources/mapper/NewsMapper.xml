@@ -61,6 +61,11 @@
             <if test="status != null">
                 AND status = #{status}
             </if>
+            <if test="keyword != null and keyword != ''">
+                AND (title LIKE CONCAT('%', #{keyword}, '%') 
+                     OR summary LIKE CONCAT('%', #{keyword}, '%') 
+                     OR author_name LIKE CONCAT('%', #{keyword}, '%'))
+            </if>
         </where>
         ORDER BY created_at DESC
     </select>
