@@ -31,6 +31,13 @@ public class CompanyController {
         return ApiResponse.success("获取成功", response);
     }
 
+    // 公开接口：根据企业ID获取企业信息
+    @GetMapping("/companies/{companyId}")
+    public ApiResponse<SysCompany> getCompanyById(@PathVariable Long companyId) {
+        SysCompany company = companyService.getCompanyById(companyId);
+        return ApiResponse.success("获取成功", company);
+    }
+
     // 企业成员管理接口
     @GetMapping("/company/{companyId}/members")
     public ApiResponse<PageResponse<SysUser>> listCompanyMembers(

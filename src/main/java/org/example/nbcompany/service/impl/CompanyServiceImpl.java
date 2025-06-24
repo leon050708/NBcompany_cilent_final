@@ -49,6 +49,15 @@ public class CompanyServiceImpl implements CompanyService {
     }
 
     @Override
+    public SysCompany getCompanyById(Long companyId) {
+        SysCompany company = companyMapper.selectById(companyId);
+        if (company == null) {
+            throw new RuntimeException("企业不存在");
+        }
+        return company;
+    }
+
+    @Override
     @Transactional
     public void updateCompanyStatus(Long companyId, Integer status) {
         SysCompany company = companyMapper.selectById(companyId);

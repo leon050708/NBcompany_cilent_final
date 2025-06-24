@@ -34,7 +34,9 @@ public class SecurityConfig {
                 
                 // 企业相关端点
                 .requestMatchers("/api/v1/companies").permitAll()
+                .requestMatchers("/api/v1/companies/**").permitAll()
                 .requestMatchers("/api/companies").permitAll()
+                .requestMatchers("/api/companies/**").permitAll()
                 
                 // 新闻相关端点（可能需要公开访问）
                 .requestMatchers("/api/news/**").permitAll()
