@@ -18,7 +18,7 @@
     </resultMap>
 
     <insert id="insert" parameterType="org.example.nbcompany.entity.SysUser" useGeneratedKeys="true" keyProperty="id">
-        INSERT INTO sys_user (
+        INSERT INTO app_user (
             username, password, nickname, phone_number, email, gender,
             user_type, company_id, company_role, status, created_at, updated_at
         ) VALUES (
@@ -28,15 +28,15 @@
     </insert>
 
     <select id="selectById" resultMap="BaseResultMap">
-        SELECT * FROM sys_user WHERE id = #{id}
+        SELECT * FROM app_user WHERE id = #{id}
     </select>
 
     <select id="selectByUsername" resultMap="BaseResultMap">
-        SELECT * FROM sys_user WHERE username = #{username}
+        SELECT * FROM app_user WHERE username = #{username}
     </select>
 
     <update id="updateById" parameterType="org.example.nbcompany.entity.SysUser">
-        UPDATE sys_user
+        UPDATE app_user
         SET username = #{username},
             password = #{password},
             nickname = #{nickname},
@@ -52,12 +52,12 @@
     </update>
 
     <delete id="deleteById">
-        DELETE FROM sys_user WHERE id = #{id}
+        DELETE FROM app_user WHERE id = #{id}
     </delete>
 
     <select id="selectByConditions" resultMap="BaseResultMap">
         SELECT u.*, c.company_name
-        FROM sys_user u
+        FROM app_user u
         LEFT JOIN sys_company c ON u.company_id = c.id
         <where>
             <if test="companyId != null">
@@ -85,7 +85,7 @@
 
     <select id="countByConditions" resultType="long">
         SELECT COUNT(*)
-        FROM sys_user u
+        FROM app_user u
         <where>
             <if test="companyId != null">
                 AND u.company_id = #{companyId}
@@ -110,7 +110,7 @@
 
     <select id="selectByCompanyId" resultMap="BaseResultMap">
         SELECT u.*, c.company_name
-        FROM sys_user u
+        FROM app_user u
         LEFT JOIN sys_company c ON u.company_id = c.id
         WHERE u.company_id = #{companyId}
         <if test="username != null and username != ''">
@@ -128,7 +128,7 @@
 
     <select id="countByCompanyId" resultType="long">
         SELECT COUNT(*)
-        FROM sys_user u
+        FROM app_user u
         WHERE u.company_id = #{companyId}
         <if test="username != null and username != ''">
             AND u.username LIKE CONCAT('%', #{username}, '%')

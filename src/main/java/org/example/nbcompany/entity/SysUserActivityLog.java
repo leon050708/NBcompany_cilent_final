@@ -5,7 +5,7 @@ import java.io.Serializable;
 import java.time.LocalDateTime;
 
 /**
- * 用户活动日志表 (sys_user_activity_log) 对应的实体类
+ * 用户活动日志表 (app_user_activity_log) 对应的实体类
  */
 @Data
 public class SysUserActivityLog implements Serializable {

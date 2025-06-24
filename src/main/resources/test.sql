@@ -24,9 +24,9 @@ INSERT INTO `sys_company` (`id`, `company_name`, `contact_person`, `contact_phon
                                                                                                                    (3, '新风医疗股份有限公司', '王五', '13700137000', 'wangwu@newhealth.com', 0);
 
 
--- 2. 用户表 (sys_user)
-DROP TABLE IF EXISTS `sys_user`;
-CREATE TABLE `sys_user` (
+-- 2. 用户表 (app_user)
+DROP TABLE IF EXISTS `app_user`;
+CREATE TABLE `app_user` (
                             `id` BIGINT NOT NULL AUTO_INCREMENT COMMENT '用户ID',
                             `username` VARCHAR(50) NOT NULL COMMENT '用户名/账号',
                             `password` VARCHAR(255) NOT NULL COMMENT '密码（哈希存储）',
@@ -46,8 +46,8 @@ CREATE TABLE `sys_user` (
                             CONSTRAINT `fk_user_company` FOREIGN KEY (`company_id`) REFERENCES `sys_company` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='用户表';
 
--- 测试数据 for sys_user (密码通常是哈希值，这里用 'password' 占位)
-INSERT INTO `sys_user` (`id`, `username`, `password`, `nickname`, `phone_number`, `email`, `gender`, `user_type`, `company_id`, `company_role`, `status`) VALUES
+-- 测试数据 for app_user (密码通常是哈希值，这里用 'password' 占位)
+INSERT INTO `app_user` (`id`, `username`, `password`, `nickname`, `phone_number`, `email`, `gender`, `user_type`, `company_id`, `company_role`, `status`) VALUES
                                                                                                                                                               (1, 'admin', '$2a$10$fL3n3v9v5b.npL/E/e4BGe.xRz.w6A7D9E0b6A5A4A3A2A1A0A', '平台超级管理员', '18888888888', 'admin@platform.com', 1, 2, NULL, 1, 1),
                                                                                                                                                               (2, 'zhangsan', '$2a$10$fL3n3v9v5b.npL/E/e4BGe.xRz.w6A7D9E0b6A5A4A3A2A1A0A', '张三', '13800138000', 'zhangsan@futuretech.com', 1, 1, 1, 2, 1),
                                                                                                                                                               (3, 'lisi', '$2a$10$fL3n3v9v5b.npL/E/e4BGe.xRz.w6A7D9E0b6A5A4A3A2A1A0A', '李四', '13900139000', 'lisi@greenenergy.com', 1, 1, 2, 1, 1),
@@ -76,7 +76,7 @@ CREATE TABLE `biz_news` (
                             PRIMARY KEY (`id`),
                             KEY `idx_author_id` (`author_id`),
                             KEY `idx_company_id_news` (`company_id`),
-                            CONSTRAINT `fk_news_author` FOREIGN KEY (`author_id`) REFERENCES `sys_user` (`id`) ON DELETE CASCADE,
+                            CONSTRAINT `fk_news_author` FOREIGN KEY (`author_id`) REFERENCES `app_user` (`id`) ON DELETE CASCADE,
                             CONSTRAINT `fk_news_company` FOREIGN KEY (`company_id`) REFERENCES `sys_company` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='行业动态/资讯表';
 
@@ -109,7 +109,7 @@ CREATE TABLE `biz_course` (
                               `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
                               PRIMARY KEY (`id`),
                               KEY `idx_author_id_course` (`author_id`),
-                              CONSTRAINT `fk_course_author` FOREIGN KEY (`author_id`) REFERENCES `sys_user` (`id`) ON DELETE CASCADE
+                              CONSTRAINT `fk_course_author` FOREIGN KEY (`author_id`) REFERENCES `app_user` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='课程表';
 
 -- 测试数据 for biz_course
@@ -143,7 +143,7 @@ CREATE TABLE `biz_meeting` (
                                `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
                                `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
                                PRIMARY KEY (`id`),
-                               CONSTRAINT `fk_meeting_creator` FOREIGN KEY (`creator_id`) REFERENCES `sys_user` (`id`) ON DELETE CASCADE
+                               CONSTRAINT `fk_meeting_creator` FOREIGN KEY (`creator_id`) REFERENCES `app_user` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='会议表';
 
 -- 测试数据 for biz_meeting
@@ -170,7 +170,7 @@ CREATE TABLE `biz_meeting_registration` (
                                             PRIMARY KEY (`id`),
                                             UNIQUE KEY `uk_meeting_user` (`meeting_id`,`user_id`),
                                             CONSTRAINT `fk_reg_meeting` FOREIGN KEY (`meeting_id`) REFERENCES `biz_meeting` (`id`) ON DELETE CASCADE,
-                                            CONSTRAINT `fk_reg_user` FOREIGN KEY (`user_id`) REFERENCES `sys_user` (`id`) ON DELETE CASCADE
+                                            CONSTRAINT `fk_reg_user` FOREIGN KEY (`user_id`) REFERENCES `app_user` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='会议注册回执表';
 
 -- 测试数据 for biz_meeting_registration
@@ -211,24 +211,26 @@ INSERT INTO `biz_collaboration` (`category`, `title`, `summary`, `creator_id`, `
 -- 数据分析相关表 (Data Analysis)
 -- =================================================================
 
--- 8. 用户活动日志表 (sys_user_activity_log)
-DROP TABLE IF EXISTS `sys_user_activity_log`;
-CREATE TABLE `sys_user_activity_log` (
+-- 8. 用户活动日志表 (User Activity Log)
+DROP TABLE IF EXISTS `app_user_activity_log`;
+CREATE TABLE `app_user_activity_log` (
                                          `id` BIGINT NOT NULL AUTO_INCREMENT COMMENT '日志ID',
-                                         `user_id` BIGINT DEFAULT NULL COMMENT '用户ID (可空)',
+                                         `user_id` BIGINT NOT NULL COMMENT '用户ID',
                                          `action_type` VARCHAR(50) NOT NULL COMMENT '操作类型',
                                          `target_type` VARCHAR(50) DEFAULT NULL COMMENT '目标类型',
                                          `target_id` BIGINT DEFAULT NULL COMMENT '目标ID',
-                                         `ip_address` VARCHAR(50) DEFAULT NULL COMMENT 'IP地址',
-                                         `device_info` VARCHAR(255) DEFAULT NULL COMMENT '设备信息',
-                                         `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '操作时间',
+                                         `ip_address` VARCHAR(45) DEFAULT NULL COMMENT 'IP地址',
+                                         `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
                                          PRIMARY KEY (`id`),
-                                         KEY `idx_user_action` (`user_id`,`action_type`)
+                                         KEY `idx_user_id` (`user_id`),
+                                         KEY `idx_action_type` (`action_type`),
+                                         KEY `idx_created_at` (`created_at`),
+                                         CONSTRAINT `fk_activity_user` FOREIGN KEY (`user_id`) REFERENCES `app_user` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='用户活动日志表';
 
--- 测试数据 for sys_user_activity_log
-INSERT INTO `sys_user_activity_log` (`user_id`, `action_type`, `target_type`, `target_id`, `ip_address`) VALUES
-                                                                                                             (2, 'login', 'user', 2, '192.168.1.10'),
-                                                                                                             (3, 'view_news', 'news', 1, '123.45.67.89'),
-                                                                                                             (2, 'view_course', 'course', 2, '192.168.1.10'),
-                                                                                                             (3, 'register_meeting', 'meeting', 1, '123.45.67.89');
+-- 测试数据 for app_user_activity_log
+INSERT INTO `app_user_activity_log` (`user_id`, `action_type`, `target_type`, `target_id`, `ip_address`) VALUES
+                                                                                                             (1, 'LOGIN', 'SYSTEM', NULL, '192.168.1.100'),
+                                                                                                             (2, 'CREATE_NEWS', 'NEWS', 1, '192.168.1.101'),
+                                                                                                             (3, 'VIEW_COURSE', 'COURSE', 1, '192.168.1.102'),
+                                                                                                             (4, 'REGISTER_MEETING', 'MEETING', 1, '192.168.1.103');

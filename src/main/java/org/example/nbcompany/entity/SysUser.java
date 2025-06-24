@@ -5,7 +5,7 @@ import java.io.Serializable;
 import java.time.LocalDateTime;
 
 /**
- * 用户表 (sys_user) 对应的实体类
+ * 用户表 (app_user) 对应的实体类
  */
 @Data
 public class SysUser implements Serializable {
