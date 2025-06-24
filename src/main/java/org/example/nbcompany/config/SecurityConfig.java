@@ -63,6 +63,10 @@ public class SecurityConfig {
                 .requestMatchers("/api/v1/user/**").hasRole("USER")
                 .requestMatchers("/api/user/**").hasRole("USER")
                 
+                // 管理员相关端点需要超级管理员权限
+                .requestMatchers("/api/v1/admin/**").hasRole("SUPER_ADMIN")
+                .requestMatchers("/api/admin/**").hasRole("SUPER_ADMIN")
+                
                 // 其他所有请求需要认证
                 .anyRequest().authenticated()
             )
