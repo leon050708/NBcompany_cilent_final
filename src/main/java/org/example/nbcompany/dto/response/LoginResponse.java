@@ -12,6 +12,8 @@ public class LoginResponse {
         private Long id;
         private String username;
         private String nickname;
+        private String email;
+        private String phoneNumber;
         private Integer userType;
         private Long companyId;
         private String companyName;
