@@ -21,7 +21,7 @@ public class CourseQueryDTO {
     
     /** 企业ID - 精确查询 */
     private Long companyId;
-    
+    private String companyName;
     /** 审核状态 (0:待审核, 1:已发布/审核通过, 2:审核未通过) */
     private Integer status;
     
@@ -36,4 +36,5 @@ public class CourseQueryDTO {
     
     /** 每页大小 */
     private Integer pageSize = 10;
+
 } 

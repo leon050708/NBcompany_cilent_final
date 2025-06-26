@@ -10,7 +10,8 @@ import java.time.LocalDateTime;
  */
 @Data
 public class CourseListItemDTO {
-    
+    private Long companyId;
+    private Long authorId;
     /** 课程ID */
     private Long id;
     

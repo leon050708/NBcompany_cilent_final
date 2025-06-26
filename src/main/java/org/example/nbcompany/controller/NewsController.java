@@ -22,12 +22,24 @@ public class NewsController {
         return ApiResponse.success(newsService.createNews(createNewsDto));
     }
 
+    // ==================== 修改开始 ====================
     @GetMapping
     public ApiResponse<PageInfo<NewsResponseDto>> getAllNews(@RequestParam(defaultValue = "1") int pageNum,
                                                              @RequestParam(defaultValue = "10") int pageSize,
                                                              NewsQueryDto queryDto) {
-        return ApiResponse.success(newsService.getAllNews(pageNum, pageSize, queryDto));
+        try {
+            // 你原来的代码不变
+            return ApiResponse.success(newsService.getAllNews(pageNum, pageSize, queryDto));
+        } catch (Exception e) {
+            // 添加这个catch块来打印详细错误
+            System.err.println("!!!!!!!!!!  getAllNews 方法捕获到异常  !!!!!!!!!!");
+            e.printStackTrace(); // 这会打印出完整的错误堆栈
+
+            // 重新抛出异常，保持和之前一样的500错误行为
+            throw e;
+        }
     }
+    // ==================== 修改结束 ====================
 
     @GetMapping("/{id}")
     public ApiResponse<NewsResponseDto> getNewsDetail(@PathVariable Long id) {

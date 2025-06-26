@@ -21,61 +21,73 @@
         <result column="updated_at" property="updatedAt"/>
     </resultMap>
 
+    <resultMap id="MeetingDetailDtoResultMap" type="org.example.nbcompany.dto.MeetingDto.MeetingDetailDto" extends="MeetingResultMap">
+        <result column="companyName" property="companyName"/>
+    </resultMap>
     <sql id="Base_Column_List">
         id, meeting_name, start_time, end_time, cover_image_url, content, location,
         organizer, agenda, speakers, creator_id, creator_name, company_id, status,
         created_at, updated_at
     </sql>
 
-    <select id="selectByConditions" resultMap="MeetingResultMap">
+    <select id="selectByConditions" resultMap="MeetingDetailDtoResultMap">
         SELECT
-        <include refid="Base_Column_List" />
-        FROM biz_meeting
+            m.id, m.meeting_name, m.start_time, m.end_time, m.cover_image_url, m.content, m.location,
+            m.organizer, m.agenda, m.speakers, m.creator_id, m.creator_name, m.company_id, m.status,
+            m.created_at, m.updated_at,
+            c.company_name AS companyName
+        FROM
+            biz_meeting m
+        LEFT JOIN
+            sys_company c ON m.company_id = c.id
         <where>
             <if test="meetingName != null and meetingName != ''">
-                AND meeting_name LIKE CONCAT('%', #{meetingName}, '%')
+                AND m.meeting_name LIKE CONCAT('%', #{meetingName}, '%')
             </if>
             <if test="creatorName != null and creatorName != ''">
-                AND creator_name LIKE CONCAT('%', #{creatorName}, '%')
+                AND m.creator_name LIKE CONCAT('%', #{creatorName}, '%')
             </if>
             <if test="companyId != null">
-                AND company_id = #{companyId}
+                AND m.company_id = #{companyId}
             </if>
             <if test="startDate != null">
-                AND start_time >= #{startDate}
+                AND m.start_time >= #{startDate}
             </if>
             <if test="endDate != null">
-                AND end_time &lt;= #{endDate}
+                AND m.end_time &lt;= #{endDate}
             </if>
             <if test="status != null">
-                AND status = #{status}
+                AND m.status = #{status}
             </if>
         </where>
-        ORDER BY start_time DESC
+        ORDER BY m.start_time DESC
         LIMIT #{offset}, #{limit}
     </select>
 
     <select id="countByConditions" resultType="long">
         SELECT COUNT(*)
-        FROM biz_meeting
+        FROM
+            biz_meeting m
+        LEFT JOIN
+            sys_company c ON m.company_id = c.id
         <where>
             <if test="meetingName != null and meetingName != ''">
-                AND meeting_name LIKE CONCAT('%', #{meetingName}, '%')
+                AND m.meeting_name LIKE CONCAT('%', #{meetingName}, '%')
             </if>
             <if test="creatorName != null and creatorName != ''">
-                AND creator_name LIKE CONCAT('%', #{creatorName}, '%')
+                AND m.creator_name LIKE CONCAT('%', #{creatorName}, '%')
             </if>
             <if test="companyId != null">
-                AND company_id = #{companyId}
+                AND m.company_id = #{companyId}
             </if>
             <if test="startDate != null">
-                AND start_time >= #{startDate}
+                AND m.start_time >= #{startDate}
             </if>
             <if test="endDate != null">
-                AND end_time &lt;= #{endDate}
+                AND m.end_time &lt;= #{endDate}
             </if>
             <if test="status != null">
-                AND status = #{status}
+                AND m.status = #{status}
             </if>
         </where>
     </select>

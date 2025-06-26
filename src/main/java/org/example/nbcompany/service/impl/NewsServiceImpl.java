@@ -83,10 +83,11 @@ public class NewsServiceImpl implements NewsService {
             throw new RuntimeException("动态不存在");
         }
         if (news.getStatus() != 1) {
-            if (!UserContext.isPlatformAdmin() &&
-                    !Objects.equals(UserContext.getCurrentUserId(), news.getAuthorId()) &&
-                    !(UserContext.isCompanyAdmin() && Objects.equals(UserContext.getCurrentUserCompanyId(), news.getCompanyId()))) {
-                throw new SecurityException("您无权查看此动态");
+            if (!UserContext.isPlatformAdmin()) {
+                if (!Objects.equals(UserContext.getCurrentUserId(), news.getAuthorId()) &&
+                        !(UserContext.isCompanyAdmin() && Objects.equals(UserContext.getCurrentUserCompanyId(), news.getCompanyId()))) {
+                    throw new SecurityException("您无权查看此动态");
+                }
             }
         }
         news.setViewCount(news.getViewCount() + 1);

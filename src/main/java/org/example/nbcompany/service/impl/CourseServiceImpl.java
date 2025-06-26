@@ -1,6 +1,5 @@
 package org.example.nbcompany.service.impl;
 
-import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import org.example.nbcompany.dao.BizCourseDao;
 import org.example.nbcompany.dao.SysCompanyMapper;
@@ -83,30 +82,49 @@ public class CourseServiceImpl implements CourseService {
             throw new IllegalArgumentException("无权限访问此课程");
         }
         
+        // 增加观看次数
+        incrementViewCount(id);
+        // 重新获取课程信息，确保viewCount是最新的
+        bizCourse = bizCourseDao.findById(id);
+        
         return convertToDetailDTO(bizCourse);
     }
 
     @Override
     public PageInfo<CourseListItemDTO> getCourseList(CourseQueryDTO queryDTO) {
-        // 获取当前用户信息
+        System.out.println("==> [TEST] 进入 getCourseList, 参数: " + queryDTO);
         SysUser currentUser = getCurrentUserOrThrow();
-        
-        // 设置分页
-        PageHelper.startPage(queryDTO.getPageNum(), queryDTO.getPageSize());
-        
-        // 根据用户权限过滤课程状态
-        if (!isAdminUser(currentUser)) {
-            // 普通用户只能看到已发布的课程
-            if (queryDTO.getStatus() == null) {
-                queryDTO.setStatus(1); // 默认只查询已发布的课程
-            } else if (queryDTO.getStatus() != 1) {
-                // 如果用户指定了非已发布状态，且不是管理员，则不允许查询
-                throw new IllegalArgumentException("无权限查询此状态的课程");
-            }
+        System.out.println("==> [TEST] 当前用户: " + currentUser);
+        System.out.println("==> [TEST] 权限: " + isAdminUser(currentUser));
+
+        // 如果 queryDTO 为 null，则新建一个默认实例
+        if (queryDTO == null) {
+            queryDTO = new CourseQueryDTO();
         }
-        
-        // TODO: 根据查询条件构建查询参数
-        List<BizCourse> courseList = bizCourseDao.findAll();
+
+        System.out.println("==> [TEST] 查询参数: " + queryDTO);
+
+        // 权限过滤
+        List<BizCourse> courseList = bizCourseDao.findByQuery(queryDTO);
+
+        if (currentUser.getUserType() == 2) {
+            // 平台管理员不过滤，什么都能看
+        } else if (currentUser.getUserType() == 1 && currentUser.getCompanyRole() == 2) {
+            // 企业管理员：只看已发布的 或 本企业待审核的
+            courseList = courseList.stream()
+                    .filter(c -> c.getStatus() == 1 || (c.getStatus() == 0 && currentUser.getCompanyId() != null && currentUser.getCompanyId().equals(c.getCompanyId())))
+                    .collect(Collectors.toList());
+        } else if (currentUser.getUserType() == 1 && currentUser.getCompanyRole() == 1) {
+            // 企业普通用户：只看已发布的 或 自己上传的
+            courseList = courseList.stream()
+                    .filter(c -> c.getStatus() == 1 || (currentUser.getId().equals(c.getAuthorId())))
+                    .collect(Collectors.toList());
+        }
+
+        System.out.println("==> [TEST] 最终查询参数: " + queryDTO);
+
+
+        System.out.println("==> [TEST] 查询结果数量: " + (courseList != null ? courseList.size() : "null"));
         
         // 批量获取企业名称，提高性能
         List<Long> companyIds = courseList.stream()
@@ -164,10 +182,17 @@ public class CourseServiceImpl implements CourseService {
         if (courseUpdateDTO.getAuthorName() != null) {
             existing.setAuthorName(courseUpdateDTO.getAuthorName());
         }
-        if (courseUpdateDTO.getStatus() != null) {
-            existing.setStatus(courseUpdateDTO.getStatus());
+        // 状态字段不直接由前端控制
+        // if (courseUpdateDTO.getStatus() != null) {
+        //     existing.setStatus(courseUpdateDTO.getStatus());
+        // }
+
+        // 如果是作者本人编辑，编辑后状态设为0（待审核）
+        Long currentUserId = UserContext.getCurrentUserId();
+        if (currentUserId != null && currentUserId.equals(existing.getAuthorId())) {
+            existing.setStatus(0); // 待审核
         }
-        
+
         existing.setUpdatedAt(LocalDateTime.now());
         bizCourseDao.update(existing);
 
@@ -457,11 +482,9 @@ public class CourseServiceImpl implements CourseService {
         if (currentUser == null) return false;
         // 作者本人不计入
         if (currentUserId.equals(course.getAuthorId())) return false;
-        // 企业管理员或平台管理员不计入
-        boolean isAdmin = (currentUser.getCompanyRole() != null && currentUser.getCompanyRole() == 2)
-                          || (currentUser.getUserType() != null && currentUser.getUserType() == 2);
-        if (isAdmin) return false;
-        // 只有普通用户访问时才+1
+        // 平台管理员不计入
+        if (currentUser.getUserType() != null && currentUser.getUserType() == 2) return false;
+        // 其他人都+1（包括企业管理员、普通用户、其他企业管理员）
         bizCourseDao.incrementViewCount(id);
         return true;
     }

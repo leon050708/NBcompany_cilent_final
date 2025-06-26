@@ -3,13 +3,14 @@ package org.example.nbcompany.dao;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.example.nbcompany.entity.BizMeeting;
+import org.example.nbcompany.dto.MeetingDto.MeetingDetailDto;
 
 import java.time.LocalDate;
 import java.util.List;
 
 @Mapper
 public interface BizMeetingMapper {
-    List<BizMeeting> selectByConditions(@Param("meetingName") String meetingName,
+    List<MeetingDetailDto> selectByConditions(@Param("meetingName") String meetingName,
                                         @Param("creatorName") String creatorName,
                                         @Param("companyId") Long companyId,
                                         @Param("startDate") LocalDate startDate,

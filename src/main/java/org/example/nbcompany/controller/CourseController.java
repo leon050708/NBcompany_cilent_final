@@ -6,7 +6,6 @@ import org.example.nbcompany.dto.CourseDto.*;
 import org.example.nbcompany.dto.response.ApiResponse;
 import org.example.nbcompany.dto.response.PageResponse;
 import org.example.nbcompany.service.CourseService;
-import org.example.nbcompany.util.UserContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -81,8 +80,10 @@ public class CourseController {
             response.setTotal(pageInfo.getTotal());
             return ApiResponse.success("获取课程列表成功", response);
         } catch (IllegalArgumentException e) {
+            e.printStackTrace(); // 加上这行
             return ApiResponse.error(403, e.getMessage());
         } catch (Exception e) {
+            e.printStackTrace(); // 加上这行
             return ApiResponse.error(500, "获取课程列表失败: " + e.getMessage());
         }
     }

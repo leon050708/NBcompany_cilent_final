@@ -1,9 +1,8 @@
 package org.example.nbcompany.service;
 
-import org.apache.ibatis.annotations.Param;
 import org.example.nbcompany.dto.response.PageResponse;
 import org.example.nbcompany.entity.BizMeeting;
-
+import org.example.nbcompany.dto.MeetingDto.MeetingDetailDto;
 import java.time.LocalDate;
 
 public interface MeetingService {
@@ -17,11 +16,12 @@ public interface MeetingService {
      * @param size        每页的项目数量
      * @return 包含会议列表和分页信息的 PageResponse 对象
      */
-    PageResponse<BizMeeting>listMeetings(String meetingName, String creatorName, Long companyId, LocalDate startDate, LocalDate endDate, Integer status,int page, int size);
+    PageResponse<MeetingDetailDto> listMeetings(String meetingName, String creatorName, Long companyId, LocalDate startDate, LocalDate endDate, Integer status,int page, int size);
 
     BizMeeting getMeetingDetails(Long meetingId);
     BizMeeting createMeeting(BizMeeting meeting,Long creatorId);
     BizMeeting updateMeeting(Long meetingId, BizMeeting meetingUpdateData, Long currentUserId);
     void deleteMeeting(Long meetingId,long currentUserId);
     void updateMeetingStatus(Long meetingId,Integer status,long currentUserId);
+    void resubmitMeeting(Long meetingId, Long currentUserId);
 }
