@@ -37,17 +37,41 @@
 
     <update id="updateById" parameterType="org.example.nbcompany.entity.SysUser">
         UPDATE sys_user
-        SET username = #{username},
-            password = #{password},
-            nickname = #{nickname},
-            phone_number = #{phoneNumber},
-            email = #{email},
-            gender = #{gender},
-            user_type = #{userType},
-            company_id = #{companyId},
-            company_role = #{companyRole},
-            status = #{status},
-            updated_at = #{updatedAt}
+        <set>
+            <if test="username != null">
+                username = #{username},
+            </if>
+            <if test="password != null">
+                password = #{password},
+            </if>
+            <if test="nickname != null">
+                nickname = #{nickname},
+            </if>
+            <if test="phoneNumber != null">
+                phone_number = #{phoneNumber},
+            </if>
+            <if test="email != null">
+                email = #{email},
+            </if>
+            <if test="gender != null">
+                gender = #{gender},
+            </if>
+            <if test="userType != null">
+                user_type = #{userType},
+            </if>
+            <if test="companyId != null">
+                company_id = #{companyId},
+            </if>
+            <if test="companyRole != null">
+                company_role = #{companyRole},
+            </if>
+            <if test="status != null">
+                status = #{status},
+            </if>
+            <if test="updatedAt != null">
+                updated_at = #{updatedAt},
+            </if>
+        </set>
         WHERE id = #{id}
     </update>
 
