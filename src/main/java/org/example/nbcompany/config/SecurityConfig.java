@@ -39,8 +39,8 @@ public class SecurityConfig {
                 .requestMatchers("/api/companies/**").permitAll()
                 
                 // 新闻相关端点（可能需要公开访问）
-                .requestMatchers("/api/news/**").permitAll()
-                .requestMatchers("/api/v1/news/**").permitAll()
+//                .requestMatchers("/api/news/**").permitAll()
+//                .requestMatchers("/api/v1/news/**").permitAll()
                 
                 // 课程相关端点需要认证
                 .requestMatchers("/api/courses/**").hasRole("USER")
