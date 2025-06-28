@@ -20,7 +20,10 @@ public class AdminController {
 
     @Autowired
     private CompanyService companyService;
+
+    @Autowired
     private AnalyticsService analyticsService;
+
     @GetMapping("/users")
     public ApiResponse<PageResponse<SysUser>> listUsers(
             @RequestParam(required = false) Long companyId,

@@ -9,9 +9,32 @@
         <id column="id" property="id"/>
         <result column="category" property="category"/>
         <result column="title" property="title"/>
+        <result column="content" property="content"/>
         <result column="summary" property="summary"/>
         <result column="external_link" property="externalLink"/>
     </resultMap>
+
+    <!-- 结果映射 -->
+    <resultMap id="MobileBizMeetingResponseMap" type="org.example.nbcompany.entity.BizMeeting">
+        <id column="id" property="id"/>
+        <result column="meeting_name" property="meetingName"/>
+        <result column="start_time" property="startTime"/>
+        <result column="end_time" property="endTime"/>
+        <result column="cover_image_url" property="coverImageUrl"/>
+        <result column="content" property="content"/>
+        <result column="location" property="location"/>
+        <result column="organizer" property="organizer"/>
+        <result column="agenda" property="agenda"/>
+        <result column="speakers" property="speakers"/>
+        <result column="creator_id" property="creatorId"/>
+        <result column="creator_name" property="creatorName"/>
+        <result column="company_id" property="companyId"/>
+        <result column="company_name" property="companyName"/>
+        <result column="status" property="status"/>
+        <result column="created_at" property="createdAt"/>
+        <result column="updated_at" property="updatedAt"/>
+    </resultMap>
+
 
     <!-- 获取合作模块列表 -->
     <select id="getCollaborations" resultMap="MobileBizCollaborationResponseMap">
@@ -45,26 +68,30 @@
     </select>
 
     <!-- 根据会议ID获取会议详情 -->
-    <select id="findByMeetingId" resultType="org.example.nbcompany.entity.BizMeeting">
-        SELECT 
-            id,
-            meeting_name,
-            start_time,
-            end_time,
-            cover_image_url,
-            content,
-            location,
-            organizer,
-            agenda,
-            speakers,
-            creator_id,
-            creator_name,
-            company_id,
-            status,
-            created_at,
-            updated_at
-        FROM biz_meeting
-        WHERE id = #{meetingId}
+    <select id="findByMeetingId" resultMap="MobileBizMeetingResponseMap">
+        SELECT
+            bm.id,
+            bm.meeting_name,
+            bm.start_time,
+            bm.end_time,
+            bm.cover_image_url,
+            bm.content,
+            bm.location,
+            bm.organizer,
+            bm.agenda,
+            bm.speakers,
+            bm.creator_id,
+            bm.creator_name,
+            bm.company_id,
+            sc.company_name,
+            bm.status,
+            bm.created_at,
+            bm.updated_at
+        FROM
+            biz_meeting bm
+                LEFT JOIN
+            sys_company sc ON bm.company_id = sc.id
+        WHERE bm.id = #{meetingId}
     </select>
 
     <!-- 插入会议注册回执 -->
@@ -121,6 +148,7 @@
             id,
             category,
             title,
+            content,
             summary,
             external_link
         FROM biz_collaboration

@@ -137,6 +137,13 @@ public class NewsServiceImpl implements NewsService {
         if (news == null) { return null; }
         NewsResponseDto newsDto = new NewsResponseDto();
         BeanUtils.copyProperties(news, newsDto);
+        if (news.getCompanyId() != null) {
+            org.example.nbcompany.dao.SysCompanyMapper companyMapper = org.example.nbcompany.util.SpringContextHolder.getBean(org.example.nbcompany.dao.SysCompanyMapper.class);
+            org.example.nbcompany.entity.SysCompany company = companyMapper.selectById(news.getCompanyId());
+            if (company != null) {
+                newsDto.setCompanyName(company.getCompanyName());
+            }
+        }
         return newsDto;
     }
 }

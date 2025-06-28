@@ -18,6 +18,9 @@ public class MobileBizCollaborationResponse {
     /** 模块简介 */
     private String summary;
 
+    /** 详细内容（富文本） */
+    private String content;
+
     /** 外部链接 */
     private String externalLink;
 }

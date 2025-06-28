@@ -41,20 +41,21 @@
 
     <select id="findTopViewedNews" parameterType="org.example.nbcompany.dto.AnalyticsDto.AnalyticsQueryDto" resultType="org.example.nbcompany.dto.AnalyticsDto.TopViewedNewsItem">
         SELECT
-        t.target_id as id,
+        b.id as id,
         b.title as title,
         COUNT(t.id) as views
         FROM
         sys_user_activity_log t
         JOIN
-        biz_news b ON t.target_id = b.id
+        biz_news b ON CAST(t.target_id AS SIGNED) = b.id
         <where>
             t.action_type = 'view_news'
             <if test="startDate != null">AND t.created_at &gt;= #{startDate}</if>
             <if test="endDate != null">AND t.created_at &lt;= #{endDate}</if>
+            <if test="companyId != null">AND b.company_id = #{companyId}</if>
         </where>
         GROUP BY
-        t.target_id, b.title
+        b.id, b.title
         ORDER BY
         views DESC
         LIMIT 5

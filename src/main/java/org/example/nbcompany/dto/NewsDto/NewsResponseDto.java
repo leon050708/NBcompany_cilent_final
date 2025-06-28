@@ -13,6 +13,7 @@ public class NewsResponseDto {
     private Long authorId;
     private String authorName;
     private Long companyId;
+    private String companyName;
     private Integer status;
     private Integer viewCount;
     private LocalDateTime createdAt;
