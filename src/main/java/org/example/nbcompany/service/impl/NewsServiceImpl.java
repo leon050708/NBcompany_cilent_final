@@ -1,6 +1,6 @@
 package org.example.nbcompany.service.impl;
 
-import com.github.pagehelper.PageHelper; // <-- 确保这一行存在
+import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import org.example.nbcompany.dao.NewsMapper;
 import org.example.nbcompany.dto.NewsDto.*;
@@ -12,7 +12,9 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
+// --- Import Jsoup for sanitization ---
+import org.jsoup.Jsoup;
+import org.jsoup.safety.Safelist;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -25,7 +27,6 @@ public class NewsServiceImpl implements NewsService {
 
     @Override
     public PageInfo<NewsResponseDto> getAllNews(int pageNum, int pageSize, NewsQueryDto queryDto) {
-        // ... (方法内部代码不变)
         SysUser currentUser = UserContext.getCurrentUser();
         if (currentUser == null) { throw new SecurityException("用户未登录"); }
 
@@ -43,7 +44,7 @@ public class NewsServiceImpl implements NewsService {
             }
         }
 
-        PageHelper.startPage(pageNum, pageSize); // <-- 这里使用了 PageHelper
+        PageHelper.startPage(pageNum, pageSize);
         List<BizNews> newsList = newsMapper.findList(queryDto);
         PageInfo<BizNews> newsPageInfo = new PageInfo<>(newsList);
         List<NewsResponseDto> dtoList = newsList.stream().map(this::convertToDto).collect(Collectors.toList());
@@ -64,6 +65,18 @@ public class NewsServiceImpl implements NewsService {
         if (!UserContext.isPlatformAdmin() && !UserContext.isCompanyAdmin()) {
             throw new SecurityException("您没有权限发布动态");
         }
+
+        // --- HTML Sanitization START ---
+        // Get the original, potentially unsafe HTML content
+        String unsafeContent = createNewsDto.getContent();
+        if (unsafeContent != null) {
+            // Clean the HTML using Jsoup's basicWithImages() safelist.
+            // This allows basic formatting (b, i, p, etc.) and img tags, but removes scripts.
+            String safeContent = Jsoup.clean(unsafeContent, Safelist.basicWithImages());
+            createNewsDto.setContent(safeContent);
+        }
+        // --- HTML Sanitization END ---
+
         BizNews news = new BizNews();
         BeanUtils.copyProperties(createNewsDto, news);
         news.setAuthorId(currentUser.getId());
@@ -75,6 +88,7 @@ public class NewsServiceImpl implements NewsService {
         newsMapper.insert(news);
         return convertToDto(news);
     }
+
     @Override
     @Transactional
     public NewsResponseDto getNewsDetail(Long newsId) {
@@ -94,6 +108,7 @@ public class NewsServiceImpl implements NewsService {
         newsMapper.update(news);
         return convertToDto(news);
     }
+
     @Override
     @Transactional
     public NewsResponseDto updateNews(Long newsId, UpdateNewsDto updateNewsDto) {
@@ -105,10 +120,20 @@ public class NewsServiceImpl implements NewsService {
                 !(UserContext.isCompanyAdmin() && Objects.equals(UserContext.getCurrentUserCompanyId(), existingNews.getCompanyId()))) {
             throw new SecurityException("您没有权限修改此动态");
         }
+
+        // --- HTML Sanitization START ---
+        String unsafeContent = updateNewsDto.getContent();
+        if (unsafeContent != null) {
+            String safeContent = Jsoup.clean(unsafeContent, Safelist.basicWithImages());
+            updateNewsDto.setContent(safeContent);
+        }
+        // --- HTML Sanitization END ---
+
         BeanUtils.copyProperties(updateNewsDto, existingNews);
         newsMapper.update(existingNews);
         return convertToDto(existingNews);
     }
+
     @Override
     @Transactional
     public void deleteNews(Long newsId) {
@@ -120,6 +145,7 @@ public class NewsServiceImpl implements NewsService {
         }
         newsMapper.deleteById(newsId);
     }
+
     @Override
     @Transactional
     public void auditNews(Long newsId, AuditNewsDto auditNewsDto) {
@@ -133,6 +159,7 @@ public class NewsServiceImpl implements NewsService {
         existingNews.setStatus(auditNewsDto.getStatus());
         newsMapper.update(existingNews);
     }
+
     private NewsResponseDto convertToDto(BizNews news) {
         if (news == null) { return null; }
         NewsResponseDto newsDto = new NewsResponseDto();
