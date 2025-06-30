@@ -82,6 +82,26 @@
                 SELECT id FROM sys_company WHERE company_name LIKE CONCAT('%', #{query.companyName}, '%')
                 )
             </if>
+            <!-- 权限过滤条件 -->
+            <if test="query.currentUserId != null and query.currentUserType != null">
+                <choose>
+                    <when test="query.currentUserType == 2">
+                        <!-- 平台管理员：可以查看所有课程 -->
+                    </when>
+                    <when test="query.currentUserType == 1 and query.currentCompanyRole == 2">
+                        <!-- 企业管理员：只看已发布的 或 本企业待审核的 -->
+                        AND (status = 1 OR (status = 0 AND company_id = #{query.currentCompanyId}))
+                    </when>
+                    <when test="query.currentUserType == 1 and query.currentCompanyRole == 1">
+                        <!-- 企业普通用户：只看已发布的 或 自己上传的 -->
+                        AND (status = 1 OR author_id = #{query.currentUserId})
+                    </when>
+                    <otherwise>
+                        <!-- 其他用户：只看已发布的 -->
+                        AND status = 1
+                    </otherwise>
+                </choose>
+            </if>
             <!-- 你可以继续加其他条件 -->
         </where>
         ORDER BY

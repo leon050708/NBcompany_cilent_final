@@ -102,29 +102,32 @@ public class CourseServiceImpl implements CourseService {
             queryDTO = new CourseQueryDTO();
         }
 
-        System.out.println("==> [TEST] 查询参数: " + queryDTO);
-
-        // 权限过滤
-        List<BizCourse> courseList = bizCourseDao.findByQuery(queryDTO);
-
-        if (currentUser.getUserType() == 2) {
-            // 平台管理员不过滤，什么都能看
-        } else if (currentUser.getUserType() == 1 && currentUser.getCompanyRole() == 2) {
-            // 企业管理员：只看已发布的 或 本企业待审核的
-            courseList = courseList.stream()
-                    .filter(c -> c.getStatus() == 1 || (c.getStatus() == 0 && currentUser.getCompanyId() != null && currentUser.getCompanyId().equals(c.getCompanyId())))
-                    .collect(Collectors.toList());
-        } else if (currentUser.getUserType() == 1 && currentUser.getCompanyRole() == 1) {
-            // 企业普通用户：只看已发布的 或 自己上传的
-            courseList = courseList.stream()
-                    .filter(c -> c.getStatus() == 1 || (currentUser.getId().equals(c.getAuthorId())))
-                    .collect(Collectors.toList());
+        // 设置默认分页参数
+        if (queryDTO.getPageNum() == null) {
+            queryDTO.setPageNum(1);
+        }
+        if (queryDTO.getPageSize() == null) {
+            queryDTO.setPageSize(10);
         }
 
-        System.out.println("==> [TEST] 最终查询参数: " + queryDTO);
+        // 设置用户权限信息到查询对象中，用于 SQL 权限过滤
+        queryDTO.setCurrentUserId(currentUser.getId());
+        queryDTO.setCurrentUserType(currentUser.getUserType());
+        queryDTO.setCurrentCompanyRole(currentUser.getCompanyRole());
+        queryDTO.setCurrentCompanyId(currentUser.getCompanyId());
 
+        System.out.println("==> [TEST] 查询参数: " + queryDTO);
+
+        // 使用 PageHelper 进行分页查询
+        com.github.pagehelper.PageHelper.startPage(queryDTO.getPageNum(), queryDTO.getPageSize());
+        List<BizCourse> courseList = bizCourseDao.findByQuery(queryDTO);
+        
+        // 获取分页信息（基于 BizCourse 查询结果）
+        PageInfo<BizCourse> pageInfo = new PageInfo<>(courseList);
 
         System.out.println("==> [TEST] 查询结果数量: " + (courseList != null ? courseList.size() : "null"));
+        System.out.println("==> [TEST] 总数据量: " + pageInfo.getTotal());
+        System.out.println("==> [TEST] 总页数: " + pageInfo.getPages());
         
         // 批量获取企业名称，提高性能
         List<Long> companyIds = courseList.stream()
@@ -148,8 +151,13 @@ public class CourseServiceImpl implements CourseService {
                     return dto;
                 })
                 .collect(Collectors.toList());
+        
+        // 创建新的 PageInfo 对象，保持分页信息
+        PageInfo<CourseListItemDTO> dtoPageInfo = new PageInfo<>();
+        BeanUtils.copyProperties(pageInfo, dtoPageInfo);
+        dtoPageInfo.setList(dtoList);
                 
-        return new PageInfo<>(dtoList);
+        return dtoPageInfo;
     }
 
     @Override

@@ -36,5 +36,18 @@ public class CourseQueryDTO {
     
     /** 每页大小 */
     private Integer pageSize = 10;
+    
+    // 权限过滤相关字段
+    /** 当前用户ID */
+    private Long currentUserId;
+    
+    /** 当前用户类型 (1:企业用户, 2:平台管理员) */
+    private Integer currentUserType;
+    
+    /** 当前用户企业角色 (1:普通用户, 2:企业管理员) */
+    private Integer currentCompanyRole;
+    
+    /** 当前用户所属企业ID */
+    private Long currentCompanyId;
 
 } 
