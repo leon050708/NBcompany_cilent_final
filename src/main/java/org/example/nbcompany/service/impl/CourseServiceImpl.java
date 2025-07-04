@@ -121,7 +121,7 @@ public class CourseServiceImpl implements CourseService {
         // 使用 PageHelper 进行分页查询
         com.github.pagehelper.PageHelper.startPage(queryDTO.getPageNum(), queryDTO.getPageSize());
         List<BizCourse> courseList = bizCourseDao.findByQuery(queryDTO);
-        
+
         // 获取分页信息（基于 BizCourse 查询结果）
         PageInfo<BizCourse> pageInfo = new PageInfo<>(courseList);
 
@@ -151,7 +151,7 @@ public class CourseServiceImpl implements CourseService {
                     return dto;
                 })
                 .collect(Collectors.toList());
-        
+                
         // 创建新的 PageInfo 对象，保持分页信息
         PageInfo<CourseListItemDTO> dtoPageInfo = new PageInfo<>();
         BeanUtils.copyProperties(pageInfo, dtoPageInfo);
