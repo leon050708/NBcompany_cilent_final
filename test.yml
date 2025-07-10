@@ -1,0 +1,100 @@
+app:
+  description: 基于 NBCompany API 的智能助理，可以查询课程、会议、新闻等信息。
+  icon: '🤖'
+  icon_background: '#FFEAD5'
+  mode: workflow
+  name: NBCompany 智能API助理
+  use_icon_as_answer_icon: false
+kind: app
+version: 0.3.0
+workflow:
+  features:
+    file_upload:
+      enabled: false
+    opening_statement: 你好，我是您的 NBCompany 智能助理，请问有什么可以帮您？
+    suggested_questions_after_answer:
+      enabled: true
+    retriever_resource:
+      enabled: false
+  graph:
+    edges:
+      - id: start-to-agent
+        source: start
+        sourceHandle: source
+        target: agent
+        targetHandle: target
+      - id: agent-to-end
+        source: agent
+        sourceHandle: source
+        target: end
+        targetHandle: target
+    nodes:
+      - id: start
+        data:
+          title: 开始
+          desc: ''
+          type: start
+          variables:
+            - variable: user_query
+              label: 用户问题
+              type: text-input
+              required: true
+              max_length: 256
+        position:
+          x: 100
+          y: 300
+      - id: agent
+        data:
+          title: NBCompany 智能 Agent
+          desc: '负责理解用户意图，选择并调用已注册的 NBCompany API 工具来完成任务。'
+          type: agent
+          agent_mode:
+            strategy: react
+            tools: [] # 重要：上传后，请在这里手动添加您在第二步中创建的所有工具
+            prompt: >-
+              ## Role
+              You are a professional enterprise assistant for the "NBCompany" system.
+
+              ## Task
+              Your primary goal is to accurately understand the user's request and utilize the provided tools (which are API wrappers for the NBCompany system) to find information or perform actions. After using a tool and getting a result, you must present the information to the user in a clear, friendly, and natural language format.
+
+              ## Available Tools
+              You have access to a set of tools that can call the NBCompany system's API. You will see the list of available tools and their descriptions. Use them wisely.
+              - **Example Tools could be**: `get_courses`, `get_meeting_details`, `get_news_list`, `create_meeting`, etc.
+
+              ## Workflow
+              1.  **Analyze**: Carefully analyze the user's query (`{{user_query}}`) to understand their intent.
+              2.  **Select Tool**: Based on the intent, choose the most appropriate tool from your toolkit. Pay close attention to the tool's description and required parameters.
+              3.  **Execute Tool**: Call the selected tool with the correct parameters extracted from the user's query.
+              4.  **Interpret Result**: The tool will return a JSON object from the API.
+              5.  **Synthesize & Respond**: Do not just output the raw JSON. Summarize the information from the JSON into a human-readable, helpful response. 
+                 - If the result is an empty list or null, provide a polite message like "抱歉，我没有找到相关信息哦。" or "根据您的描述，系统里暂时还没有这方面的内容。"
+                 - If you find the information, present it clearly. For example, "好的，我找到了关于'Java'的课程：'Java基础教程' 和 'Java进阶教程'。"
+
+              ## Important Rules
+              - **NEVER** make up information. If a tool fails or returns no data, say so.
+              - **ALWAYS** use the tools to interact with the system. Do not pretend to have information you haven't fetched.
+              - If the user's request is ambiguous, ask for clarification. For example: "您想查询哪个时间段的会议呢？"
+          model:
+            provider: openai
+            name: gpt-4
+            mode: chat
+            completion_params:
+              temperature: 0.2
+        position:
+          x: 450
+          y: 300
+      - id: end
+        data:
+          title: 结束
+          desc: ''
+          type: end
+          outputs:
+            - variable: agent_output
+              value_selector:
+                - agent
+                - text
+        position:
+          x: 800
+          y: 300
+  conversation_variables: []
